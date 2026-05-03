@@ -6,7 +6,9 @@ namespace SIIP_Transilvania.Forms
     {
         public string Cod { get; }
         public string Denumire { get; }
-        public ComboItem(string cod, string den) { Cod = cod; Denumire = den; }
+        public string Extra { get; }  // camp suplimentar (ex. Functie pentru Angajat)
+        public ComboItem(string cod, string den, string extra = "")
+        { Cod = cod; Denumire = den; Extra = extra; }
         public override string ToString() => Denumire;
     }
 

@@ -311,7 +311,7 @@ namespace SIIP_Transilvania.Models
         public decimal Suma { get; set; }
         public string TipPlata { get; set; }  // "PlataFurnizor"|"ReturClient"|"Salarii"|"Decont"
         public string Canal { get; set; }      // "Numerar" sau "ContBancar"
-        public string StareaPlata { get; set; } = "Procesat";
+        public string Stare { get; set; } = "Procesat";
 
         private readonly List<PlataEsalonata> _plate = new List<PlataEsalonata>();
         public void AddPlataEsalonata(PlataEsalonata pe) { _plate.Add(pe); pe.Plata = this; }

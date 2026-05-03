@@ -89,6 +89,7 @@
     <Reference Include="Microsoft.IdentityModel.Tokens, Version=8.16.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.IdentityModel.Tokens.8.16.0\lib\net472\Microsoft.IdentityModel.Tokens.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Buffers, Version=4.0.5.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Buffers.4.6.1\lib\net462\System.Buffers.dll</HintPath>
@@ -158,16 +159,40 @@
     <Compile Include="Form1.Designer.cs">
       <DependentUpon>Form1.cs</DependentUpon>
     </Compile>
+    <Compile Include="Forms\DecontFormCtrl.cs" />
+    <Compile Include="Forms\DecontFormData.cs" />
+    <Compile Include="Forms\FormDecont.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Forms\FormHelpers.cs" />
+    <Compile Include="Forms\FormIncasare.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormMain %281%29.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormPlata.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\FormPlata.Designer.cs">
+      <DependentUpon>FormPlata.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\FormRetur %281%29.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="Forms\IncasareFormCtrl.cs" />
+    <Compile Include="Forms\IncasareFormData.cs" />
+    <Compile Include="Forms\PlataFormCtrl.cs" />
+    <Compile Include="Forms\PlataFormData.cs" />
     <Compile Include="Forms\ReturFormCtrl.cs" />
     <Compile Include="Forms\ReturFormData.cs" />
-    <Compile Include="Models\Models_SIIP %282%29.cs" />
+    <Compile Include="Models\Models_SIIP %283%29.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Tests\TestSIIP.cs" />
+    <EmbeddedResource Include="Forms\FormMain %281%29.resx">
+      <DependentUpon>FormMain %281%29.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using Microsoft.Data.SqlClient;
@@ -153,6 +153,24 @@ namespace SIIP_Transilvania.Database
                     new SqlParameter("@delta", sumaDelta),
                     new SqlParameter("@id",    idCaserie)
                 });
+        }
+
+        public List<Angajat> FindAngajatiAll()
+        {
+            var list = new List<Angajat>();
+            var dt = ExecuteQuery("SELECT idAngajat, functie, nume, prenume FROM Angajat ORDER BY nume");
+            foreach (DataRow r in dt.Rows)
+                list.Add(new Sofer { IdAngajat = Convert.ToInt32(r["idAngajat"]), Functie = r["functie"].ToString(), Nume = r["nume"].ToString(), Prenume = r["prenume"].ToString() });
+            return list;
+        }
+
+        public List<Angajat> FindDirectoriAll()
+        {
+            var list = new List<Angajat>();
+            var dt = ExecuteQuery("SELECT idAngajat, functie, nume, prenume FROM Angajat WHERE functie='DirectorFinanciar' ORDER BY nume");
+            foreach (DataRow r in dt.Rows)
+                list.Add(new DirectorFinanciar { IdAngajat = Convert.ToInt32(r["idAngajat"]), Functie = r["functie"].ToString(), Nume = r["nume"].ToString(), Prenume = r["prenume"].ToString() });
+            return list;
         }
     }
 }
