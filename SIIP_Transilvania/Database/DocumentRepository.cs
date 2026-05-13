@@ -8,12 +8,8 @@ using System.Data;
 namespace SIIP_Transilvania.Database
 {
     // ═══════════════════════════════════════════════════════════════════════
-    // DocumentRepository — operatii CRUD pentru documente
-    // Contine metodele tuturor membrilor echipei:
-    // - Retur (Lazăr Maria-Daniela)
-    // - Incasare Client (Crenganiș Andreea-Bianca)
-    // - Plata Furnizor (Iosub Maria-Catalina)
-    // - Decont (Podina Sabina-Alexia)
+    // DocumentRepository — contine DOAR query-uri SQL si mapare DataRow->obiect
+    // Fara logica de business, fara filtrari — acestea apartin FormData/Controller
     // ═══════════════════════════════════════════════════════════════════════
     public class PlataDetail
     {
@@ -47,11 +43,7 @@ namespace SIIP_Transilvania.Database
                   ORDER BY fc.dataDocument DESC",
                 new[] { new SqlParameter("@cod", codClient) });
             foreach (DataRow row in dt.Rows)
-            {
-                decimal restDisp = Convert.ToDecimal(row["restDisponibil"]);
-                if (restDisp > 0)
-                    list.Add(MapFacturaClient(row));
-            }
+                list.Add(MapFacturaClient(row));
             return list;
         }
 
@@ -59,6 +51,18 @@ namespace SIIP_Transilvania.Database
         {
             ExecuteNonQuery(
                 "UPDATE FacturaClient SET stareIncasare=@stare WHERE serie=@s AND numar=@n",
+                new[] {
+                    new SqlParameter("@stare", stareNoua),
+                    new SqlParameter("@s", serie),
+                    new SqlParameter("@n", numar)
+                });
+        }
+
+        public void UpdateStareIncasareFactura(string serie, string numar, decimal sumaNoua, decimal restCurent)
+        {
+            string stareNoua = (restCurent - sumaNoua) <= 0 ? "Achitat" : "PartialIncasat";
+            ExecuteNonQuery(
+                "UPDATE FacturaClient SET stareIncasare=@stare, dataOperare=GETDATE() WHERE serie=@s AND numar=@n",
                 new[] {
                     new SqlParameter("@stare", stareNoua),
                     new SqlParameter("@s", serie),
@@ -75,7 +79,8 @@ namespace SIIP_Transilvania.Database
             TVA = Convert.ToDecimal(row["TVA"]),
             Scadenta = row["scadenta"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(row["scadenta"]),
             StareIncasare = row["stareIncasare"].ToString(),
-            CodClient = Convert.ToInt32(row["codClient"])
+            CodClient = Convert.ToInt32(row["codClient"]),
+            RestDisponibil = Convert.ToDecimal(row["restDisponibil"])
         };
 
         // ══════════════════════════════════════════════════════════════════
@@ -88,12 +93,23 @@ namespace SIIP_Transilvania.Database
             var dt = ExecuteQuery(
                 @"SELECT serie, numar, dataDocument, valoareTotala, TVA, scadenta, stare, codFurnizor
                   FROM FacturaFurnizor
-                  WHERE codFurnizor = @cod AND stare != 'Achitat'
+                  WHERE codFurnizor = @cod
                   ORDER BY dataDocument DESC",
                 new[] { new SqlParameter("@cod", codFurnizor) });
             foreach (DataRow row in dt.Rows)
                 list.Add(MapFacturaFurnizor(row));
             return list;
+        }
+
+        public void UpdateStarePlataFactura(string serie, string numar, string stare)
+        {
+            ExecuteNonQuery(
+                "UPDATE FacturaFurnizor SET stare=@stare WHERE serie=@s AND numar=@n",
+                new[] {
+                    new SqlParameter("@stare", stare),
+                    new SqlParameter("@s", serie),
+                    new SqlParameter("@n", numar)
+                });
         }
 
         private FacturaFurnizor MapFacturaFurnizor(DataRow row) => new FacturaFurnizor
@@ -130,18 +146,18 @@ namespace SIIP_Transilvania.Database
                   VALUES (@serie, @numar, @dataDoc, @dataOp, 0, @val, @motiv,
                           @stare, @tip, @codClient, @codFurnizor, @serieInit, @numarInit)",
                 new[] {
-                    new SqlParameter("@serie",       retur.Serie),
-                    new SqlParameter("@numar",        retur.Numar),
-                    new SqlParameter("@dataDoc",      retur.DataDocument),
-                    new SqlParameter("@dataOp",       DateTime.Now.Date),
-                    new SqlParameter("@val",          retur.ValoareRetur),
-                    new SqlParameter("@motiv",        retur.MotivRetur ?? (object)DBNull.Value),
-                    new SqlParameter("@stare",        retur.StareRetur),
-                    new SqlParameter("@tip",          retur.TipRetur),
-                    new SqlParameter("@codClient",    retur.CodClient.HasValue   ? (object)retur.CodClient.Value   : DBNull.Value),
-                    new SqlParameter("@codFurnizor",  retur.CodFurnizor.HasValue ? (object)retur.CodFurnizor.Value : DBNull.Value),
-                    new SqlParameter("@serieInit",    retur.SerieFactInit ?? (object)DBNull.Value),
-                    new SqlParameter("@numarInit",    retur.NumarFactInit ?? (object)DBNull.Value)
+                    new SqlParameter("@serie",      retur.Serie),
+                    new SqlParameter("@numar",       retur.Numar),
+                    new SqlParameter("@dataDoc",     retur.DataDocument),
+                    new SqlParameter("@dataOp",      DateTime.Now.Date),
+                    new SqlParameter("@val",         retur.ValoareRetur),
+                    new SqlParameter("@motiv",       retur.MotivRetur ?? (object)DBNull.Value),
+                    new SqlParameter("@stare",       retur.StareRetur),
+                    new SqlParameter("@tip",         retur.TipRetur),
+                    new SqlParameter("@codClient",   retur.CodClient.HasValue   ? (object)retur.CodClient.Value   : DBNull.Value),
+                    new SqlParameter("@codFurnizor", retur.CodFurnizor.HasValue ? (object)retur.CodFurnizor.Value : DBNull.Value),
+                    new SqlParameter("@serieInit",   retur.SerieFactInit ?? (object)DBNull.Value),
+                    new SqlParameter("@numarInit",   retur.NumarFactInit ?? (object)DBNull.Value)
                 });
             return retur;
         }
@@ -197,7 +213,8 @@ namespace SIIP_Transilvania.Database
 
         public void AnuleazaRetur(string serie, string numar)
         {
-            ExecuteNonQuery("UPDATE FacturaRetur SET stareRetur='Anulat' WHERE serie=@s AND numar=@n",
+            ExecuteNonQuery(
+                "UPDATE FacturaRetur SET stareRetur='Anulat' WHERE serie=@s AND numar=@n",
                 new[] { new SqlParameter("@s", serie), new SqlParameter("@n", numar) });
         }
 
@@ -220,29 +237,23 @@ namespace SIIP_Transilvania.Database
         public decimal GetSumaIncasata(string serie, string numar)
         {
             var r = ExecuteScalar(
-                "SELECT ISNULL(SUM(SumaIncasata),0) FROM Incasare WHERE serie=@s AND numar=@n",
+                "SELECT ISNULL(SUM(sumaIncasata),0) FROM Incasare WHERE serie=@s AND numar=@n",
                 new[] { new SqlParameter("@s", serie), new SqlParameter("@n", numar) });
             return Convert.ToDecimal(r);
-        }
-
-        public int GetNextIdIncasare()
-        {
-            var r = ExecuteScalar("SELECT ISNULL(MAX(idIncasare),0)+1 FROM Incasare");
-            return Convert.ToInt32(r);
         }
 
         public Incasare SaveIncasare(Incasare inc)
         {
             var result = ExecuteScalar(
                 @"INSERT INTO Incasare (dataIncasare, sumaIncasata, canal, serie, numar)
-          OUTPUT INSERTED.idIncasare
-          VALUES (@data, @suma, @canal, @serie, @numar)",
+                  OUTPUT INSERTED.idIncasare
+                  VALUES (@data, @suma, @canal, @serie, @numar)",
                 new[] {
-            new SqlParameter("@data",  inc.DataIncasare),
-            new SqlParameter("@suma",  inc.SumaIncasata),
-            new SqlParameter("@canal", inc.Canal),
-            new SqlParameter("@serie", inc.SerieFact),
-            new SqlParameter("@numar", inc.NumarFact)
+                    new SqlParameter("@data",  inc.DataIncasare),
+                    new SqlParameter("@suma",  inc.SumaIncasata),
+                    new SqlParameter("@canal", inc.Canal),
+                    new SqlParameter("@serie", inc.SerieFact),
+                    new SqlParameter("@numar", inc.NumarFact)
                 });
             inc.IdIncasare = Convert.ToInt32(result);
             return inc;
@@ -276,18 +287,6 @@ namespace SIIP_Transilvania.Database
             return extras;
         }
 
-        public void UpdateStareIncasareFactura(string serie, string numar, decimal sumaNoua, decimal restCurent)
-        {
-            string stareNoua = (restCurent - sumaNoua) <= 0 ? "Achitat" : "PartialIncasat";
-            ExecuteNonQuery(
-                "UPDATE FacturaClient SET stareIncasare=@stare, dataOperare=GETDATE() WHERE serie=@s AND numar=@n",
-                new[] {
-                    new SqlParameter("@stare", stareNoua),
-                    new SqlParameter("@s",     serie),
-                    new SqlParameter("@n",     numar)
-                });
-        }
-
         public List<Incasare> FindIncasariByClient(int codClient)
         {
             var list = new List<Incasare>();
@@ -295,7 +294,7 @@ namespace SIIP_Transilvania.Database
                 @"SELECT i.idIncasare, i.dataIncasare, i.sumaIncasata, i.canal, i.serie, i.numar
                   FROM Incasare i
                   INNER JOIN FacturaClient fc ON i.serie=fc.serie AND i.numar=fc.numar
-                  WHERE fc.codClient=@cod ORDER BY i.DataIncasare DESC",
+                  WHERE fc.codClient=@cod ORDER BY i.dataIncasare DESC",
                 new[] { new SqlParameter("@cod", codClient) });
             foreach (DataRow row in dt.Rows)
                 list.Add(MapIncasare(row));
@@ -329,16 +328,18 @@ namespace SIIP_Transilvania.Database
         {
             var list = new List<PlataDetail>();
             var dt = ExecuteQuery(
-                @"SELECT p.idPlata, p.dataPlata, p.suma, p.tipPlata, p.canal, p.stare AS stareaPlata,
-                         pe.serieFurnizor, pe.numarFurnizor, pe.tipRata,
+                @"SELECT DISTINCT p.idPlata, p.dataPlata, p.suma, p.tipPlata, p.canal, p.stare AS stareaPlata,
+                         MIN(pe.serieFurnizor) AS serieFurnizor, MIN(pe.numarFurnizor) AS numarFurnizor,
+                         MIN(pe.tipRata) AS tipRata,
                          ff.codFurnizor, f.numeFurnizor,
-                         ecp.iban
+                         MIN(ecp.iban) AS iban
                   FROM Plata p
                   INNER JOIN PlataEsalonata pe ON pe.idPlata=p.idPlata
                   INNER JOIN FacturaFurnizor ff ON ff.serie=pe.serieFurnizor AND ff.numar=pe.numarFurnizor
                   INNER JOIN Furnizori f ON f.codFurnizor=ff.codFurnizor
                   LEFT JOIN ExtrasContPlata ecp ON ecp.idPlata=p.idPlata
                   WHERE ff.codFurnizor=@cod AND p.tipPlata='PlataFurnizor'
+                  GROUP BY p.idPlata, p.dataPlata, p.suma, p.tipPlata, p.canal, p.stare, ff.codFurnizor, f.numeFurnizor
                   ORDER BY p.dataPlata DESC",
                 new[] { new SqlParameter("@cod", codFurnizor) });
             foreach (DataRow row in dt.Rows)
@@ -427,22 +428,16 @@ namespace SIIP_Transilvania.Database
         {
             var result = ExecuteScalar(
                 @"INSERT INTO ExtrasContPlata (dataEmitere, sumaPlata, iban, idPlata)
-          OUTPUT INSERTED.numarExtras
-          VALUES (@data, @suma, @iban, @idPlata)",
+                  OUTPUT INSERTED.numarExtras
+                  VALUES (@data, @suma, @iban, @idPlata)",
                 new[] {
-            new SqlParameter("@data",    extras.DataEmitere),
-            new SqlParameter("@suma",    extras.SumaPlata),
-            new SqlParameter("@iban",    extras.IBAN),
-            new SqlParameter("@idPlata", extras.IdPlata)
+                    new SqlParameter("@data",    extras.DataEmitere),
+                    new SqlParameter("@suma",    extras.SumaPlata),
+                    new SqlParameter("@iban",    extras.IBAN),
+                    new SqlParameter("@idPlata", extras.IdPlata)
                 });
             extras.NumarExtras = Convert.ToInt32(result);
             return extras.NumarExtras;
-        }
-
-        public void UpdateStarePlataFactura(string serie, string numar, string stare)
-        {
-            ExecuteNonQuery("UPDATE FacturaFurnizor SET stare=@stare WHERE serie=@s AND numar=@n",
-                new[] { new SqlParameter("@stare", stare), new SqlParameter("@s", serie), new SqlParameter("@n", numar) });
         }
 
         // ══════════════════════════════════════════════════════════════════

@@ -18,10 +18,14 @@ namespace SIIP_Transilvania.Forms
 
         // Referinte catre Repository-uri
         private readonly DocumentRepository _docRepo = new DocumentRepository();
-        private readonly MasterRepository _masterRepo = new MasterRepository();
+        private readonly ClientRepository _clientRepo = new ClientRepository();
+        private readonly CaserieRepository _caserieRepo = new CaserieRepository();
+        private readonly ContBancarRepository _contBancarRepo = new ContBancarRepository();
 
         public DocumentRepository GetDocRepo() => _docRepo;
-        public MasterRepository GetMasterRepo() => _masterRepo;
+        public ClientRepository GetClientRepo() => _clientRepo;
+        public CaserieRepository GetCaserieRepo() => _caserieRepo;
+        public ContBancarRepository GetContBancarRepo() => _contBancarRepo;
 
         public Incasare GetDocumentCurent() => _documentCurent;
         public void SetDocumentCurent(Incasare incasare) { _documentCurent = incasare; }
@@ -33,7 +37,7 @@ namespace SIIP_Transilvania.Forms
         public List<Client> GetListaClienti()
         {
             if (_listaClienti == null)
-                _listaClienti = _masterRepo.FindClientiAll();
+                _listaClienti = _clientRepo.FindAll();
             return _listaClienti;
         }
 
@@ -95,14 +99,14 @@ namespace SIIP_Transilvania.Forms
         public List<Caserie> GetListaCaserii()
         {
             if (_listaCaserii == null)
-                _listaCaserii = _masterRepo.FindCaseriiAll();
+                _listaCaserii = _caserieRepo.FindAll();
             return _listaCaserii;
         }
 
         public List<ContBancar> GetListaConturi()
         {
             if (_listaConturi == null)
-                _listaConturi = _masterRepo.FindConturiBancareAll();
+                _listaConturi = _contBancarRepo.FindAll();
             return _listaConturi;
         }
 
@@ -153,11 +157,7 @@ namespace SIIP_Transilvania.Forms
         public int GetIdIncasare() => _idIncasare;
         public void SetCanal(string v) { _canal = v; }
 
-        // Genereaza ID-ul urmator disponibil pentru Incasare
-        public void GenerateIdIncasare()
-        {
-            _idIncasare = _docRepo.GetNextIdIncasare();
-        }
+       
 
         // Reseteaza datele documentului curent (dupa salvare sau renuntare)
         public void ResetDocumentCurent()

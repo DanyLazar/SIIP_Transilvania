@@ -11,17 +11,16 @@ namespace SIIP_Transilvania.Tests
     // TestSIIP — Teste unitare pentru API-ul Repository
     // Echivalent cu TestLocalitati / TestAchizitiiForm din modelul Java/JPA
     // Ghid PSI Partea 4, sectiunea 4.2 si 4.3.2
-    //
-    //
     // ═══════════════════════════════════════════════════════════════════════
     public static class TestSIIP
     {
-        private static MasterRepository   _masterRepo = new MasterRepository();
-        private static DocumentRepository _docRepo    = new DocumentRepository();
+        // Repository-uri separate — fara MasterRepository
+        private static ClientRepository _clientRepo = new ClientRepository();
+        private static FurnizoriRepository _furnizoriRepo = new FurnizoriRepository();
+        private static DocumentRepository _docRepo = new DocumentRepository();
         private static int _passed = 0;
         private static int _failed = 0;
 
-        // ── Entry point ──────────────────────────────────────────────────
         public static void RunAll()
         {
             Debug.WriteLine("═══════════════════════════════════════════");
@@ -49,7 +48,7 @@ namespace SIIP_Transilvania.Tests
         // ── TEST 1: Clienti exista in BD ─────────────────────────────────
         private static void TestClientiExista()
         {
-            List<Client> clienti = _masterRepo.FindClientiAll();
+            List<Client> clienti = _clientRepo.FindAll();
             AssertTrue("TestClientiExista",
                 clienti.Count > 0,
                 $"Exista {clienti.Count} clienti in BD.");
@@ -58,22 +57,24 @@ namespace SIIP_Transilvania.Tests
         // ── TEST 2: Furnizori exista in BD ───────────────────────────────
         private static void TestFurnizoriExista()
         {
-            List<Furnizori> furnizori = _masterRepo.FindFurnizoriAll();
+            List<Furnizori> furnizori = _furnizoriRepo.FindAll();
             AssertTrue("TestFurnizoriExista",
                 furnizori.Count > 0,
                 $"Exista {furnizori.Count} furnizori in BD.");
         }
 
-        // ── TEST 3: Facturi client pentru Alpha SRL (codClient=1) ────────
+        // ── TEST 3: Facturi client pentru codClient=1 ────────────────────
         private static void TestFacturiClientExista()
         {
             List<FacturaClient> facturi = _docRepo.FindFacturiClientByCod(1);
+            // Filtrul restDisponibil > 0 e acum in FormData, nu in Repository
+            // Testam ca Repository returneaza toate facturile
             AssertTrue("TestFacturiClientExista",
                 facturi.Count > 0,
-                $"Exista {facturi.Count} facturi client cu rest > 0 pentru codClient=1.");
+                $"Exista {facturi.Count} facturi client pentru codClient=1.");
         }
 
-        // ── TEST 4: Facturi furnizor pentru Dist Nord SRL (codFurnizor=1) 
+        // ── TEST 4: Facturi furnizor pentru codFurnizor=1 ────────────────
         private static void TestFacturiFurnizorExista()
         {
             List<FacturaFurnizor> facturi = _docRepo.FindFacturiFurnizorByCod(1);
@@ -85,7 +86,6 @@ namespace SIIP_Transilvania.Tests
         // ── TEST 5: Suma returnata pentru o factura ──────────────────────
         private static void TestGetSumaReturnata()
         {
-            // FC-001 are restul calculat corect
             decimal suma = _docRepo.GetSumaReturnata("FC", "001");
             AssertTrue("TestGetSumaReturnata",
                 suma >= 0,
@@ -107,16 +107,16 @@ namespace SIIP_Transilvania.Tests
             string numarTest = "T" + DateTime.Now.Ticks.ToString().Substring(10, 5);
             var retur = new FacturaRetur
             {
-                Serie          = "TST",
-                Numar          = numarTest,
-                DataDocument   = DateTime.Now.Date,
-                ValoareRetur   = 100,
-                MotivRetur     = "Test automat",
-                StareRetur     = "Emis",
-                TipRetur       = "Client",
-                CodClient      = 1,
-                SerieFactInit  = "FC",
-                NumarFactInit  = "001"
+                Serie = "TST",
+                Numar = numarTest,
+                DataDocument = DateTime.Now.Date,
+                ValoareRetur = 100,
+                MotivRetur = "Test automat",
+                StareRetur = "Emis",
+                TipRetur = "Client",
+                CodClient = 1,
+                SerieFactInit = "FC",
+                NumarFactInit = "001"
             };
 
             try
@@ -129,7 +129,6 @@ namespace SIIP_Transilvania.Tests
                     saved != null,
                     $"FacturaRetur TST-{numarTest} salvata cu succes.");
 
-                // Verifica ca UPDATE functioneaza — schimba starea
                 saved.StareRetur = "In curs";
                 _docRepo.BeginTransaction();
                 _docRepo.SaveFacturaRetur(saved);
@@ -139,7 +138,6 @@ namespace SIIP_Transilvania.Tests
                     true,
                     $"FacturaRetur TST-{numarTest} actualizata cu succes (stare -> In curs).");
 
-                // Curata datele de test
                 _docRepo.BeginTransaction();
                 _docRepo.AnuleazaRetur("TST", numarTest);
                 _docRepo.CommitTransaction();
@@ -154,7 +152,6 @@ namespace SIIP_Transilvania.Tests
         // ── TEST 8: Anulare FacturaRetur ─────────────────────────────────
         private static void TestAnuleazaRetur()
         {
-            // Verifica ca AnuleazaRetur nu arunca exceptie pentru un retur inexistent
             try
             {
                 _docRepo.BeginTransaction();
@@ -179,7 +176,6 @@ namespace SIIP_Transilvania.Tests
         }
 
         // ── TEST 10: ReturFormCtrl — initializare ─────────────────────────
-        // Echivalent cu prima secventa din TestAchizitiiForm din ghid
         private static void TestReturFormCtrl_Init()
         {
             ReturFormCtrl ctrl = new ReturFormCtrl();
@@ -223,14 +219,12 @@ namespace SIIP_Transilvania.Tests
                 restDisp >= 0,
                 $"Rest disponibil pentru FC-001: {restDisp:F2} RON.");
 
-            // Valoare mai mare decat restul trebuie sa fie respinsa
             bool respins = !ctrl.SalveazaRetur("Test", "Emis", restDisp + 1000, "Numerar", DateTime.Now);
             AssertTrue("TestReturFormCtrl_ValidareValoare — valoare invalida respinsa",
                 respins,
                 $"Valoarea {restDisp + 1000:F2} RON (> rest {restDisp:F2}) a fost respinsa corect.");
         }
 
-        // ── Assert helper — echivalent JUnit Assert.assertTrue ────────────
         private static void AssertTrue(string testName, bool condition, string message = "")
         {
             if (condition)

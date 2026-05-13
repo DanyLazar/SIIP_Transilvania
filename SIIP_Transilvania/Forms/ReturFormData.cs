@@ -18,10 +18,14 @@ namespace SIIP_Transilvania.Forms
 
         // Referinte catre Repository-uri — clientii nu stiu cum se acceseaza BD
         private readonly DocumentRepository _docRepo = new DocumentRepository();
-        private readonly MasterRepository _masterRepo = new MasterRepository();
+        private readonly ClientRepository _clientRepo = new ClientRepository();
+        private readonly FurnizoriRepository _furnizoriRepo = new FurnizoriRepository();
+        private readonly ContBancarRepository _contBancarRepo = new ContBancarRepository();
 
         public DocumentRepository GetDocRepo() => _docRepo;
-        public MasterRepository GetMasterRepo() => _masterRepo;
+        public ClientRepository GetClientRepo() => _clientRepo;
+        public FurnizoriRepository GetFurnizoriRepo() => _furnizoriRepo;
+        public ContBancarRepository GetContBancarRepo() => _contBancarRepo;
 
         public FacturaRetur GetDocumentCurent() => _documentCurent;
         public void SetDocumentCurent(FacturaRetur retur) { _documentCurent = retur; }
@@ -40,14 +44,14 @@ namespace SIIP_Transilvania.Forms
         public List<Client> GetListaClienti()
         {
             if (_listaClienti == null)
-                _listaClienti = _masterRepo.FindClientiAll();
+                _listaClienti = _clientRepo.FindAll();
             return _listaClienti;
         }
 
         public List<Furnizori> GetListaFurnizori()
         {
             if (_listaFurnizori == null)
-                _listaFurnizori = _masterRepo.FindFurnizoriAll();
+                _listaFurnizori = _furnizoriRepo.FindAll();
             return _listaFurnizori;
         }
 
@@ -76,14 +80,14 @@ namespace SIIP_Transilvania.Forms
         {
             if (_listaFacturiClient == null && _codPartenerSelectat > 0)
                 _listaFacturiClient = _docRepo.FindFacturiClientByCod(_codPartenerSelectat);
-            return _listaFacturiClient ?? new List<FacturaClient>();
+            return (_listaFacturiClient ?? new List<FacturaClient>()).FindAll(fc => fc.RestDisponibil > 0);
         }
 
         public List<FacturaFurnizor> GetFacturiFurnizor()
         {
             if (_listaFacturiFurnizor == null && _codPartenerSelectat > 0)
                 _listaFacturiFurnizor = _docRepo.FindFacturiFurnizorByCod(_codPartenerSelectat);
-            return _listaFacturiFurnizor ?? new List<FacturaFurnizor>();
+            return (_listaFacturiFurnizor ?? new List<FacturaFurnizor>()).FindAll(ff => ff.Stare != "Achitat");
         }
 
         // Factura initiala selectata curent

@@ -10,7 +10,9 @@ namespace SIIP_Transilvania.Forms
         // ── ZONA 0 ─────────────────────────────────────────────────────────
         private Plata _documentCurent;
         private readonly DocumentRepository _docRepo = new DocumentRepository();
-        private readonly MasterRepository _masterRepo = new MasterRepository();
+        private readonly FurnizoriRepository _furnizoriRepo = new FurnizoriRepository();
+        private readonly CaserieRepository _caserieRepo = new CaserieRepository();
+        private readonly ContBancarRepository _contBancarRepo = new ContBancarRepository();
         private bool _esteDocumentNou = false;
 
         // ── ZONA 1 — furnizori ─────────────────────────────────────────────
@@ -44,13 +46,15 @@ namespace SIIP_Transilvania.Forms
         public bool EsteDocumentNou() => _esteDocumentNou;
         public void SetDocumentNou(bool val) => _esteDocumentNou = val;
         public DocumentRepository GetDocRepo() => _docRepo;
-        public MasterRepository GetMasterRepo() => _masterRepo;
+        public FurnizoriRepository GetFurnizoriRepo() => _furnizoriRepo;
+        public CaserieRepository GetCaserieRepo() => _caserieRepo;
+        public ContBancarRepository GetContBancarRepo() => _contBancarRepo;
 
         // ── ZONA 1 ─────────────────────────────────────────────────────────
         public List<Furnizori> GetListaFurnizori()
         {
             if (_listaFurnizori == null)
-                _listaFurnizori = _masterRepo.FindFurnizoriAll();
+                _listaFurnizori = _furnizoriRepo.FindAll();
             return _listaFurnizori;
         }
 
@@ -99,14 +103,14 @@ namespace SIIP_Transilvania.Forms
         public List<Caserie> GetListaCaserii()
         {
             if (_listaCaserii == null)
-                _listaCaserii = _masterRepo.FindCaseriiAll();
+                _listaCaserii = _caserieRepo.FindAll();
             return _listaCaserii;
         }
 
         public List<ContBancar> GetListaConturiBancare()
         {
             if (_listaConturiBancare == null)
-                _listaConturiBancare = _masterRepo.FindConturiBancareAll();
+                _listaConturiBancare = _contBancarRepo.FindAll();
             return _listaConturiBancare;
         }
 

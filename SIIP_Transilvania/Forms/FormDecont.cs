@@ -496,7 +496,7 @@ namespace SIIP_Transilvania.Forms
                 cboDirector.Items.Add(new ComboItem(d.IdAngajat.ToString(), $"{d.Nume} {d.Prenume}", d.Functie));
             if (cboDirector.Items.Count > 0) cboDirector.SelectedIndex = 0;
 
-            var conturi = data.GetMasterRepo().FindConturiBancareAll();
+            var conturi = data.GetContBancarRepo().FindAll();
             foreach (var c in conturi)
                 cboIBAN.Items.Add(c.IBAN);
         }

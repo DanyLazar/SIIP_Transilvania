@@ -9,10 +9,12 @@ namespace SIIP_Transilvania.Forms
     {
         private Decont _documentCurent;
         private readonly DocumentRepository _docRepo = new DocumentRepository();
-        private readonly MasterRepository _masterRepo = new MasterRepository();
+        private readonly AngajatRepository _angajatRepo = new AngajatRepository();
+        private readonly ContBancarRepository _contBancarRepo = new ContBancarRepository();
 
         public DocumentRepository GetDocRepo() => _docRepo;
-        public MasterRepository GetMasterRepo() => _masterRepo;
+        public AngajatRepository GetAngajatRepo() => _angajatRepo;
+        public ContBancarRepository GetContBancarRepo() => _contBancarRepo;
         public Decont GetDocumentCurent() => _documentCurent;
         public void SetDocumentCurent(Decont d) { _documentCurent = d; }
 
@@ -30,14 +32,14 @@ namespace SIIP_Transilvania.Forms
         public List<Angajat> GetListaAngajati()
         {
             if (_listaAngajati == null)
-                _listaAngajati = _masterRepo.FindAngajatiAll();
+                _listaAngajati = _angajatRepo.FindAll();
             return _listaAngajati;
         }
 
         public List<Angajat> GetListaDirectori()
         {
             if (_listaDirectori == null)
-                _listaDirectori = _masterRepo.FindDirectoriAll();
+                _listaDirectori = _angajatRepo.FindDirectori();
             return _listaDirectori;
         }
 
@@ -111,6 +113,7 @@ namespace SIIP_Transilvania.Forms
 
         public void GenerateNumarDecont()
         {
+            _numar = _docRepo.GetNextNumarDecont();
             _numar = _docRepo.GetNextNumarDecont();
         }
 

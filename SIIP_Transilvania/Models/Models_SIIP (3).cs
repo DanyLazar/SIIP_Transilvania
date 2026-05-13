@@ -203,6 +203,8 @@ namespace SIIP_Transilvania.Models
         public string StareIncasare { get; set; } = "Neincasat";
         public int CodClient { get; set; }
         public Client Client { get; set; }
+        // Calculat din BD la interogare — nu stocat in tabela
+        public decimal RestDisponibil { get; set; }
 
         private readonly List<Incasare> _incasari = new List<Incasare>();
         public void AddIncasare(Incasare i) { _incasari.Add(i); i.FacturaClient = this; }

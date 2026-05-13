@@ -166,7 +166,7 @@ namespace SIIP_Transilvania.Forms
 
                 if (canal == "Numerar" && idCaserie.HasValue)
                 {
-                    _formData.GetMasterRepo().UpdateSoldCaserie(idCaserie.Value, -valPlata);
+                    _formData.GetCaserieRepo().UpdateSold(idCaserie.Value, -valPlata);
                     // Document: Chitanta (nr = PLF-IdPlata)
                     tipDoc = "Chitanta";
                     nrDoc = $"CH-{plata.IdPlata:D4}";
@@ -186,7 +186,7 @@ namespace SIIP_Transilvania.Forms
                 }
 
                 // 6. UpdateSoldFurnizor
-                _formData.GetMasterRepo().UpdateSoldFurnizor(codFurnizor, -valPlata);
+                _formData.GetFurnizoriRepo().UpdateSold(codFurnizor, -valPlata);
 
                 // 7. UpdateStarePlataFactura
                 decimal totalAchitat = _formData.GetDocRepo().GetSumaAchitata(serieFurnizor, numarFurnizor);
@@ -231,7 +231,7 @@ namespace SIIP_Transilvania.Forms
             {
                 _formData.GetDocRepo().BeginTransaction();
                 _formData.GetDocRepo().AnuleazaPlata(pd.Plata.IdPlata);
-                _formData.GetMasterRepo().UpdateSoldFurnizor(pd.CodFurnizor, pd.Plata.Suma);
+                _formData.GetFurnizoriRepo().UpdateSold(pd.CodFurnizor, pd.Plata.Suma);
                 _formData.GetDocRepo().CommitTransaction();
 
                 _formData.RefreshTotaluriLuna();

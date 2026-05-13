@@ -23,6 +23,9 @@ namespace SIIP_Transilvania.Forms
 
         public IncasareFormData GetFormData() => _formData;
 
+        // ID-ul ultimei incasari salvate — retinut inainte de reset
+        public int UltimulIdSalvat { get; private set; }
+
         // ── Eveniment: selectia unui client ──────────────────────────────
         // Echivalent cu: setFurnizorSelectat() din AchizitiiFormCtrl
         public void OnClientSelected(int cod, string nume)
@@ -47,7 +50,7 @@ namespace SIIP_Transilvania.Forms
         // Echivalent cu: documentNou() din AchizitiiFormCtrl
         public void DocumentNou()
         {
-            _formData.GenerateIdIncasare();
+            // ID generat automat de BD prin OUTPUT INSERTED.idIncasare
             var incasare = new Incasare
             {
                 DataIncasare = DateTime.Now,
@@ -84,12 +87,12 @@ namespace SIIP_Transilvania.Forms
 
             // Completeaza documentul curent
             var incasare = _formData.GetDocumentCurent();
-            incasare.IdIncasare  = _formData.GetIdIncasare();
+            incasare.IdIncasare = _formData.GetIdIncasare();
             incasare.DataIncasare = dataIncasare;
             incasare.SumaIncasata = sumaIncasata;
-            incasare.Canal        = canal;
-            incasare.SerieFact    = _formData.GetSerieFact();
-            incasare.NumarFact    = _formData.GetNumarFact();
+            incasare.Canal = canal;
+            incasare.SerieFact = _formData.GetSerieFact();
+            incasare.NumarFact = _formData.GetNumarFact();
 
             try
             {
@@ -103,29 +106,29 @@ namespace SIIP_Transilvania.Forms
                 {
                     var bon = new BonFiscal
                     {
-                        DataEmitere  = dataIncasare,
+                        DataEmitere = dataIncasare,
                         TotalValoare = sumaIncasata,
-                        IdCaserie    = idCaserie,
-                        IdIncasare   = incasare.IdIncasare
+                        IdCaserie = idCaserie,
+                        IdIncasare = incasare.IdIncasare
                     };
                     _formData.GetDocRepo().SaveBonFiscal(bon);
                     // Pas 3 — actualizeaza soldul caseriei
-                    _formData.GetMasterRepo().UpdateSoldCaserie(idCaserie, sumaIncasata);
+                    _formData.GetCaserieRepo().UpdateSold(idCaserie, sumaIncasata);
                 }
                 else
                 {
                     var extras = new ExtrasContIncasare
                     {
-                        DataEmitere  = dataIncasare,
+                        DataEmitere = dataIncasare,
                         SumaIncasata = sumaIncasata,
-                        IBAN         = iban,
-                        IdIncasare   = incasare.IdIncasare
+                        IBAN = iban,
+                        IdIncasare = incasare.IdIncasare
                     };
                     _formData.GetDocRepo().SaveExtrasContIncasare(extras);
                 }
 
                 // Pas 4 — actualizeaza soldul clientului (scade datoria)
-                _formData.GetMasterRepo().UpdateSoldClient(_formData.GetCodClientSelectat(), -sumaIncasata);
+                _formData.GetClientRepo().UpdateSold(_formData.GetCodClientSelectat(), -sumaIncasata);
 
                 // Pas 5 — actualizeaza stareIncasare pe FacturaClient
                 _formData.GetDocRepo().UpdateStareIncasareFactura(
@@ -134,6 +137,7 @@ namespace SIIP_Transilvania.Forms
 
                 _formData.GetDocRepo().CommitTransaction();
 
+                UltimulIdSalvat = incasare.IdIncasare; // retinem ID-ul inainte de reset
                 _formData.RefreshIncasari();
                 _formData.RefreshTotaluri();
                 _formData.ResetDocumentCurent();
@@ -157,6 +161,12 @@ namespace SIIP_Transilvania.Forms
         private void ShowError(string msg) =>
             MessageBox.Show(msg, "Eroare", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-        public int GetIdGenerat() => _formData.GetIdIncasare();
+        // Returneaza urmatorul ID disponibil din BD
+        public int GetUrmatorulId()
+        {
+            var dt = _formData.GetDocRepo();
+            // Citim MAX+1 din BD
+            return 0; // placeholder - se afiseaza (auto)
+        }
     }
 }

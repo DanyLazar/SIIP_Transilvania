@@ -143,7 +143,7 @@ namespace SIIP_Transilvania.Forms
         public System.Collections.Generic.List<string> GetIBANuriFirma()
         {
             var list = new System.Collections.Generic.List<string>();
-            var conturi = _formData.GetMasterRepo().FindConturiBancareAll();
+            var conturi = _formData.GetContBancarRepo().FindAll();
             foreach (var c in conturi)
                 list.Add($"{c.IBAN} — {c.Banca}");
             return list;

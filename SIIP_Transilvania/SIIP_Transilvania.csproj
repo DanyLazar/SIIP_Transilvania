@@ -150,9 +150,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Database\AbstractRepository.cs" />
+    <Compile Include="Database\AngajatRepository.cs" />
+    <Compile Include="Database\CaserieRepository.cs" />
+    <Compile Include="Database\ClientRepository.cs" />
+    <Compile Include="Database\ContBancarRepository.cs" />
     <Compile Include="Database\DatabaseHelper.cs" />
     <Compile Include="Database\DocumentRepository.cs" />
-    <Compile Include="Database\MasterRepository.cs" />
+    <Compile Include="Database\FurnizoriRepository.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
