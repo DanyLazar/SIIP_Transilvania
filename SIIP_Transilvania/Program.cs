@@ -16,6 +16,7 @@ namespace SIIP_Transilvania
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
+        
             SIIP_Transilvania.Tests.TestSIIP.RunAll();
             Application.Run(new SIIP_Transilvania.Forms.FormMain());
         }

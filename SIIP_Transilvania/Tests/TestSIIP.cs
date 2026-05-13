@@ -12,10 +12,7 @@ namespace SIIP_Transilvania.Tests
     // Echivalent cu TestLocalitati / TestAchizitiiForm din modelul Java/JPA
     // Ghid PSI Partea 4, sectiunea 4.2 si 4.3.2
     //
-    // Cum se ruleaza:
-    // 1. Click dreapta pe proiect -> Add -> New Item -> Class -> TestSIIP.cs
-    // 2. In Program.cs adauga: SIIP_Transilvania.Tests.TestSIIP.RunAll();
-    // 3. Ruleaza cu F5 si verifica Output-ul din Debug
+    //
     // ═══════════════════════════════════════════════════════════════════════
     public static class TestSIIP
     {

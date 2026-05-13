@@ -233,17 +233,18 @@ namespace SIIP_Transilvania.Database
 
         public Incasare SaveIncasare(Incasare inc)
         {
-            ExecuteNonQuery(
-                @"INSERT INTO Incasare (idIncasare, dataIncasare, sumaIncasata, canal, serie, numar)
-                  VALUES (@id, @data, @suma, @canal, @serie, @numar)",
+            var result = ExecuteScalar(
+                @"INSERT INTO Incasare (dataIncasare, sumaIncasata, canal, serie, numar)
+          OUTPUT INSERTED.idIncasare
+          VALUES (@data, @suma, @canal, @serie, @numar)",
                 new[] {
-                    new SqlParameter("@id",    inc.IdIncasare),
-                    new SqlParameter("@data",  inc.DataIncasare),
-                    new SqlParameter("@suma",  inc.SumaIncasata),
-                    new SqlParameter("@canal", inc.Canal),
-                    new SqlParameter("@serie", inc.SerieFact),
-                    new SqlParameter("@numar", inc.NumarFact)
+            new SqlParameter("@data",  inc.DataIncasare),
+            new SqlParameter("@suma",  inc.SumaIncasata),
+            new SqlParameter("@canal", inc.Canal),
+            new SqlParameter("@serie", inc.SerieFact),
+            new SqlParameter("@numar", inc.NumarFact)
                 });
+            inc.IdIncasare = Convert.ToInt32(result);
             return inc;
         }
 
@@ -424,19 +425,18 @@ namespace SIIP_Transilvania.Database
 
         public int SaveExtrasContPlata(ExtrasContPlata extras)
         {
-            int nextNumar = Convert.ToInt32(ExecuteScalar("SELECT ISNULL(MAX(numarExtras),0)+1 FROM ExtrasContPlata"));
-            extras.NumarExtras = nextNumar;
-            ExecuteNonQuery(
-                @"INSERT INTO ExtrasContPlata (numarExtras, dataEmitere, sumaPlata, iban, idPlata)
-                  VALUES (@nr, @data, @suma, @iban, @idPlata)",
+            var result = ExecuteScalar(
+                @"INSERT INTO ExtrasContPlata (dataEmitere, sumaPlata, iban, idPlata)
+          OUTPUT INSERTED.numarExtras
+          VALUES (@data, @suma, @iban, @idPlata)",
                 new[] {
-                    new SqlParameter("@nr",      nextNumar),
-                    new SqlParameter("@data",    extras.DataEmitere),
-                    new SqlParameter("@suma",    extras.SumaPlata),
-                    new SqlParameter("@iban",    extras.IBAN),
-                    new SqlParameter("@idPlata", extras.IdPlata)
+            new SqlParameter("@data",    extras.DataEmitere),
+            new SqlParameter("@suma",    extras.SumaPlata),
+            new SqlParameter("@iban",    extras.IBAN),
+            new SqlParameter("@idPlata", extras.IdPlata)
                 });
-            return nextNumar;
+            extras.NumarExtras = Convert.ToInt32(result);
+            return extras.NumarExtras;
         }
 
         public void UpdateStarePlataFactura(string serie, string numar, string stare)
